@@ -526,6 +526,13 @@
   </div>
 </div>
 
+<!-- Peringatan file:// — hanya muncul jika dibuka dari folder lokal -->
+<div id="file-warning" style="display:none;background:#fff3cd;border-bottom:2px solid #e8a825;padding:10px 16px;font-size:13px;color:#7a5000;text-align:center;line-height:1.5">
+  ⚠️ <strong>File dibuka dari komputer, bukan dari internet.</strong><br>
+  Cuaca tidak bisa dimuat. Buka lewat GitHub Pages agar semua fitur berfungsi:<br>
+  <span style="font-family:monospace;font-size:12px;background:rgba(0,0,0,.06);padding:2px 6px;border-radius:4px">https://[username].github.io/cuaca-tembakau-demak/</span>
+</div>
+
 <main>
   <div class="left-col">
 
@@ -1861,6 +1868,21 @@ window.addEventListener('load',()=>{
   const month=new Date().getMonth()+1;
   renderMonthlyGrid(month);
   renderCatatan();
+
+  // Deteksi jika dibuka dari file:// (lokal) — fitur fetch tidak bisa jalan
+  if(window.location.protocol === 'file:'){
+    const warn = document.getElementById('file-warning');
+    if(warn) warn.style.display='block';
+    // Tetap render data statis yang tidak butuh internet
+    const fb={precipitation:0,relative_humidity_2m:72,temperature_2m:30,weather_code:0,wind_speed_10m:8};
+    renderSeason(fb,month);
+    renderRecommendation(fb,month);
+    renderRiskBars(fb,month,null,null);
+    renderDasarian(null);
+    renderOPT(fb);
+    document.getElementById('update-time').textContent='Buka lewat GitHub Pages untuk cuaca realtime';
+    return; // jangan coba fetch cuaca
+  }
   // Try silent GPS on load; fall back to Karangawen if denied/slow
   if(navigator.geolocation){
     const fallback=setTimeout(()=>{ if(!usingGPS) fetchWeather(); },1500);
