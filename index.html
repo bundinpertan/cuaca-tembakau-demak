@@ -72,7 +72,7 @@ body {
   color: var(--gray-700);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  font-size: 17px;
+  font-size: 19px;
 }
 
 /* ── HEADER ─────────────────────────────── */
@@ -149,11 +149,34 @@ body {
 
 /* Location bar inside header */
 .header-location {
-  margin-top: 16px;
+  margin-top: 14px;
   position: relative; z-index: 1;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+.header-loc-status {
+  text-align: right;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.header-loc-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-loc-update {
+  font-size: 10px;
+  color: rgba(255,255,255,.5);
+  font-style: italic;
+  margin-top: 2px;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
   flex-wrap: wrap;
 }
 .loc-chip {
@@ -173,36 +196,6 @@ body {
 }
 .loc-chip:hover { background: rgba(255,255,255,.28); }
 .loc-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-.kec-btns {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-  position: relative; z-index: 1;
-}
-.kecamatan-btn {
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 20px;
-  padding: 5px 13px;
-  color: rgba(255,255,255,.75);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .2s, color .2s, border-color .2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.kecamatan-btn:hover {
-  background: rgba(255,255,255,.22);
-  color: #fff;
-}
-.kecamatan-btn.active {
-  background: rgba(255,255,255,.28);
-  border-color: rgba(255,255,255,.55);
-  color: #fff;
-}
 
 .loc-sep { color: rgba(255,255,255,.4); font-size: 12px; }
 
@@ -252,16 +245,6 @@ body {
 .search-result-name { font-size: 13px; font-weight: 600; color: var(--gray-700); }
 .search-result-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
 .search-loading, .search-empty { padding: 12px 14px; font-size: 12px; color: var(--gray-400); text-align: center; }
-
-.header-update {
-  margin-top: 8px;
-  position: relative; z-index: 1;
-  font-size: 11px;
-  color: rgba(255,255,255,.55);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
 /* ── MAIN CONTENT ───────────────────────── */
 .app-body {
@@ -1011,9 +994,9 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
   margin-bottom: 10px;
 }
 .uat-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--gray-500);
+  color: var(--gray-600);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -1304,47 +1287,14 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
 /* ── FOOTER ─────────────────────────────── */
 footer {
   background: var(--teal-900);
-  color: rgba(255,255,255,.6);
+  color: rgba(255,255,255,.45);
   font-size: 11px;
   text-align: center;
-  padding: 20px 16px 120px;
-  line-height: 1.8;
-}
-footer .footer-brand {
-  font-size: 14px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: .5px;
-  margin-bottom: 4px;
-}
-footer .footer-tagline {
-  font-style: italic;
-  color: var(--teal-300);
-  margin-bottom: 10px;
+  padding: 14px 16px 120px;
+  line-height: 1.6;
 }
 
 /* ── HEADER DATETIME ────────────────────── */
-.header-datetime {
-  margin-top: 10px;
-  position: relative; z-index: 1;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255,255,255,.92);
-  letter-spacing: .3px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.header-datetime .hd-day {
-  color: rgba(255,255,255,.92);
-}
-.header-datetime .hd-sep {
-  color: rgba(255,255,255,.4);
-}
-.header-datetime .hd-date {
-  color: rgba(255,255,255,.85);
-}
-
 /* ── GRAFIK 24 JAM ──────────────────────── */
 .chart24-card {
   background: #fff;
@@ -1496,6 +1446,72 @@ body.dark-mode .jarak-stat            { color: #aaa; }
 body.dark-mode .jarak-stat span       { color: #e0e0e0; }
 body.dark-mode .dim-badge             { background: #252525; border-color: var(--teal-600); color: var(--teal-300); }
 
+/* ── TENTANG MODAL ──────────────────────── */
+.tentang-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 900;
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.tentang-modal-bg.open { opacity: 1; pointer-events: all; }
+.tentang-modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px 20px 36px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+body.dark-mode .tentang-modal { background: #1a2e2c; }
+.tentang-logo-row {
+  display: flex; align-items: center; gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.tentang-app-name { font-size: 17px; font-weight: 800; color: var(--teal-700); }
+.tentang-app-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.tentang-section-title {
+  font-size: 11px; font-weight: 700;
+  color: var(--teal-600);
+  text-transform: uppercase; letter-spacing: .6px;
+  margin-bottom: 6px;
+}
+.tentang-desc { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+.tentang-source-item {
+  font-size: 13px; color: var(--gray-600);
+  padding: 4px 0;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.tentang-source-item::before { content: '•'; color: var(--teal-500); font-weight: 700; flex-shrink: 0; }
+.tentang-footer { font-size: 11px; color: var(--gray-400); text-align: center; padding-top: 8px; }
+.btn-info {
+  background: none; border: none;
+  color: rgba(255,255,255,.85);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 8px;
+  transition: background .15s;
+}
+.btn-info:hover { background: rgba(255,255,255,.15); }
+.btn-feedback {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  background: var(--teal-50);
+  border: 1.5px solid var(--teal-200);
+  color: var(--teal-700);
+  font-size: 14px; font-weight: 600;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s;
+}
+.btn-feedback:hover { background: var(--teal-100); }
+
 /* ── UKURAN FONT (mode baca sebagai default) ── */
 .catatan-input { font-size: 15px; padding: 12px 14px; }
 .uat-section .catatan-input { font-size: 15px; }
@@ -1553,7 +1569,8 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-theme" onclick="toggleDarkMode()" id="btn-dark-mode" title="Ganti mode gelap/cerah">🌙</button>
+      <button class="btn-info" onclick="openTentang()" title="Tentang SACAKA">?</button>
+      <button class="btn-theme" onclick="toggleDarkMode()" id="btn-dark-mode" title="Ganti mode gelap/cerah">◑</button>
     </div>
   </div>
 
@@ -1562,19 +1579,13 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
       <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span id="gps-label">📍 Gunakan GPS</span>
     </button>
-  </div>
-  <div class="kec-btns">
-    <button class="kecamatan-btn" onclick="setLocation('Karangawen')">Karangawen</button>
-    <button class="kecamatan-btn" onclick="setLocation('Mranggen')">Mranggen</button>
-    <button class="kecamatan-btn" onclick="setLocation('Guntur')">Guntur</button>
-  </div>
-
-  <div class="header-datetime" id="header-datetime"></div>
-  <div class="header-update">
-    <span>📍 <span id="loc-name">Mendeteksi lokasi...</span></span>
-    <span>·</span>
-    <span id="update-time"></span>
-    <span id="gps-status" style="font-style:italic"></span>
+    <div class="header-loc-status">
+      <div class="header-loc-name" id="loc-name">Mendeteksi lokasi...</div>
+      <div class="header-loc-update">
+        <span id="update-time"></span>
+        <span id="gps-status"></span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1647,8 +1658,13 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
       </div>
     </div>
 
+  </div><!-- /tab-cuaca -->
+
+  <!-- ── TAB: PANDUAN ─────────────────────────────── -->
+  <div class="tab-page" id="tab-panduan">
+
     <!-- Jadwal budidaya -->
-    <div class="section-label">🌱 Jadwal Budidaya</div>
+    <div class="section-label" style="margin-top:16px">🌱 Jadwal Budidaya</div>
     <div class="card rec-card" id="rec-card">
       <div class="rec-header">
         <div class="rec-big-icon" id="rec-icon">🌱</div>
@@ -1659,19 +1675,6 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
       </div>
       <div class="rec-actions" id="rec-actions"></div>
     </div>
-
-    <!-- Dampak cuaca -->
-    <div class="section-label">⚠️ Dampak Cuaca · 7 Hari</div>
-    <div class="card">
-      <div class="card-body" style="padding-top:16px">
-        <div class="risk-bars" id="risk-bars"></div>
-      </div>
-    </div>
-
-  </div><!-- /tab-cuaca -->
-
-  <!-- ── TAB: PANDUAN ─────────────────────────────── -->
-  <div class="tab-page" id="tab-panduan">
 
     <!-- Pola hujan & budidaya -->
     <div class="section-label" style="margin-top:16px">🌧 Pola Hujan & Budidaya
@@ -1759,7 +1762,7 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
   <div class="tab-page" id="tab-risiko">
 
     <!-- Dasarian -->
-    <div class="section-label" style="margin-top:16px">🌧 Peringatan Hujan Dasarian · 10 Hari</div>
+    <div class="section-label" style="margin-top:16px">🌧 Amankah hujan 10 hari ke depan?</div>
     <div class="card">
       <div class="card-body" style="padding-top:14px">
         <div id="dasarian-panel"></div>
@@ -1767,8 +1770,16 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
       </div>
     </div>
 
+    <!-- Risk Bars -->
+    <div class="section-label">⚠️ Seberapa berisiko cuaca minggu ini?</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:16px">
+        <div class="risk-bars" id="risk-bars"></div>
+      </div>
+    </div>
+
     <!-- OPT -->
-    <div class="section-label">🐛 Pengendalian OPT · Kondisi Saat Ini</div>
+    <div class="section-label">🐛 Apakah ada ancaman hama/penyakit sekarang?</div>
     <div class="card">
       <div class="card-body" style="padding-top:14px">
         <div class="opt-section" id="opt-panel"></div>
@@ -1800,7 +1811,7 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
             <input class="catatan-input" id="uat-nama" type="text" placeholder="Nama lengkap">
           </div>
           <div class="uat-field">
-            <div class="uat-label"><span class="uat-icon">👥</span> Kelompok Tani</div>
+            <div class="uat-label"><span class="uat-icon">🤝</span> Kelompok Tani</div>
             <input class="catatan-input" id="uat-poktan" type="text" placeholder="Nama kelompok tani">
           </div>
         </div>
@@ -1961,9 +1972,51 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
     <div class="catatan-list" id="catatan-list"></div>
     <div style="height:16px"></div>
 
+    <!-- FEEDBACK -->
+    <a class="btn-feedback" href="https://forms.gle/LINK_FORM_DISINI" target="_blank" rel="noopener">
+      📝 Kirim Feedback / Pertanyaan
+    </a>
+    <div style="height:8px"></div>
+
   </div><!-- /tab-catatan -->
 
 </div><!-- /app-body -->
+
+<!-- ── MODAL: TENTANG ────────────────────────────────────────────────────── -->
+<div class="tentang-modal-bg" id="tentang-modal" onclick="closeTentang(event)">
+  <div class="tentang-modal">
+    <div class="tentang-logo-row">
+      <div>
+        <div class="tentang-app-name">🌿 SACAKA</div>
+        <div class="tentang-app-sub">Sistem Aplikasi Cuaca Tembakau · Kab. Demak</div>
+      </div>
+      <button class="modal-close" onclick="closeTentang()" style="margin-left:auto">✕</button>
+    </div>
+
+    <div>
+      <div class="tentang-section-title">Tentang Aplikasi</div>
+      <div class="tentang-desc">
+        SACAKA membantu petani tembakau Kabupaten Demak memantau cuaca, risiko hama penyakit, jadwal budidaya, dan menghitung usaha tani secara real-time.
+      </div>
+    </div>
+
+    <div>
+      <div class="tentang-section-title">Sumber Data</div>
+      <div class="tentang-source-item">Cuaca: Open-Meteo (model ECMWF)</div>
+      <div class="tentang-source-item">Pola Hujan & Produktivitas: Kajian UNS × Dinpertan Pangan Demak 2023</div>
+      <div class="tentang-source-item">OPT: Balittas Malang · Literatur OPT Jawa Tengah</div>
+    </div>
+
+    <div>
+      <div class="tentang-section-title">Cara Penggunaan</div>
+      <div class="tentang-desc">
+        Pilih kecamatan atau gunakan GPS → pantau cuaca & risiko harian → ikuti jadwal budidaya → catat hasil panen di Kalkulator.
+      </div>
+    </div>
+
+    <div class="tentang-footer">© 2026 Dinas Pertanian dan Pangan Kabupaten Demak</div>
+  </div>
+</div>
 
 <!-- ── BOTTOM NAV ─────────────────────────────────────────────────────── -->
 <nav class="bottom-nav">
@@ -1971,13 +2024,13 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
     <span class="nav-icon">⛅</span>
     <span class="nav-label">Cuaca</span>
   </button>
-  <button class="nav-item" onclick="switchTab('panduan',this)">
-    <span class="nav-icon">📋</span>
-    <span class="nav-label">Rekomendasi</span>
-  </button>
   <button class="nav-item" onclick="switchTab('risiko',this)">
     <span class="nav-icon">⚠️</span>
     <span class="nav-label">Risiko</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('panduan',this)">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Rekomendasi</span>
   </button>
   <button class="nav-item" onclick="switchTab('catatan',this)">
     <span class="nav-icon">🧮</span>
@@ -2003,11 +2056,6 @@ body.dark-mode .dim-badge             { background: #252525; border-color: var(-
 
 <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
 <footer>
-  <div class="footer-brand">SACAKA</div>
-  <div class="footer-tagline">Siap Amati Cuaca Tembakau</div>
-  Cuaca: Open-Meteo (ECMWF best_match) · Lokasi: OpenStreetMap Nominatim<br>
-  Data CH: Rekap 2001–2022, Kec. Guntur/Mranggen/Karangawen — Kajian UNS × Dinpertan Pangan (2023)<br>
-  Data OPT: Balittas Malang · Literatur OPT Jateng<br>
   © 2026 Dinas Pertanian dan Pangan Kabupaten Demak
 </footer>
 
@@ -2033,6 +2081,7 @@ function switchTab(name, btn){
   const page = document.getElementById('tab-'+name);
   if(page) page.classList.add('active');
   if(btn) btn.classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
   localStorage.setItem('sacaka_tab', name);
   if(name==='catatan'){
     initPetikanRows();
@@ -2049,10 +2098,19 @@ function switchTab(name, btn){
   }
 }
 
+// ── Modal Tentang ─────────────────────────────────────────────────────────
+function openTentang(){
+  document.getElementById('tentang-modal').classList.add('open');
+}
+function closeTentang(e){
+  if(!e || e.target===document.getElementById('tentang-modal')){
+    document.getElementById('tentang-modal').classList.remove('open');
+  }
+}
+
 // ── Dark Mode ─────────────────────────────────────────────────────────────
 function toggleDarkMode(){
   const isDark = document.body.classList.toggle('dark-mode');
-  document.getElementById('btn-dark-mode').textContent = isDark ? '☀️' : '🌙';
   localStorage.setItem('darkMode', isDark ? '1' : '0');
 }
 
@@ -2060,10 +2118,6 @@ function toggleDarkMode(){
 (function(){
   if(localStorage.getItem('darkMode') === '1'){
     document.body.classList.add('dark-mode');
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const btn = document.getElementById('btn-dark-mode');
-      if(btn) btn.textContent = '☀️';
-    });
   }
 })();
 
@@ -2328,6 +2382,9 @@ async function fetchWeather(lat, lon){
     coords={lat:locData.lat,lon:locData.lon};
   }
   const loc=coords;
+  const cacheKey='cache_cuaca_last';
+  const cacheTimeKey='cache_cuaca_time_last';
+
   // Sumber cuaca: Open-Meteo — model ECMWF IFS + ICON (resolusi terbaik untuk Indonesia)
   // Open-Meteo menggabungkan model global + data stasiun WMO terdekat secara otomatis
   const _ts=Math.floor(Date.now()/300000); // cache 5 menit
@@ -2339,20 +2396,33 @@ async function fetchWeather(lat, lon){
     clearTimeout(timer);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();
+    // ── Simpan ke cache ──
+    localStorage.setItem(cacheKey, JSON.stringify(d));
+    localStorage.setItem(cacheTimeKey, Date.now());
     window._useTmrw=false;
     renderAll(d, loc.lat, loc.lon);
     document.getElementById('update-time').textContent='Diperbarui: '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+' WIB';
   }catch(e){
-    // Gagal fetch — render data statis tanpa pesan error
-    const month=new Date().getMonth()+1;
-    const fb={precipitation:0,relative_humidity_2m:72,temperature_2m:30,weather_code:0,wind_speed_10m:8};
-    renderSeason(fb,month);
-    renderRecommendation(fb,month);
-    renderRiskBars(fb,month,null,null);
-    renderDasarian(null);
-    renderOPT(fb);
-    renderMonthlyGrid(month);
-    document.getElementById('update-time').textContent='Cuaca tidak tersedia — data statis ditampilkan';
+    // ── Coba pakai cache terakhir ──
+    const cached=localStorage.getItem(cacheKey);
+    const cachedTime=localStorage.getItem(cacheTimeKey);
+    if(cached){
+      const d=JSON.parse(cached);
+      const waktu=cachedTime ? new Date(parseInt(cachedTime)).toLocaleString('id-ID',{weekday:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+      renderAll(d, loc.lat, loc.lon);
+      document.getElementById('update-time').textContent='📵 Offline · Data terakhir: '+waktu+' WIB';
+    } else {
+      // Belum pernah online — tampil data statis
+      const month=new Date().getMonth()+1;
+      const fb={precipitation:0,relative_humidity_2m:72,temperature_2m:30,weather_code:0,wind_speed_10m:8};
+      renderSeason(fb,month);
+      renderRecommendation(fb,month);
+      renderRiskBars(fb,month,null,null);
+      renderDasarian(null);
+      renderOPT(fb);
+      renderMonthlyGrid(month);
+      document.getElementById('update-time').textContent='📵 Tidak ada koneksi · Buka saat ada sinyal untuk memuat data';
+    }
   }
 }
 
@@ -2751,23 +2821,6 @@ function renderDampak(daily){
 
 
 // ── HEADER DATETIME ───────────────────────────────────────────────────────
-function renderHeaderDateTime() {
-  const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const now = new Date();
-  const hari = HARI[now.getDay()];
-  const tgl = now.getDate();
-  const bln = BULAN[now.getMonth()];
-  const thn = now.getFullYear();
-  const el = document.getElementById('header-datetime');
-  if (el) {
-    el.innerHTML = `<span class="hd-day">${hari}</span><span class="hd-sep">·</span><span class="hd-date">${tgl} ${bln} ${thn}</span>`;
-  }
-}
-renderHeaderDateTime();
-// Update tanggal tiap menit (untuk kasus aplikasi terbuka melewati tengah malam)
-setInterval(renderHeaderDateTime, 60000);
-
 // ── GRAFIK 24 JAM ─────────────────────────────────────────────────────────
 let _chart24Mode = 'rain';
 let _chart24Data = null;
@@ -3504,7 +3557,7 @@ function renderCatatan(){
         <!-- Header identitas -->
         <div style="background:var(--teal-50);padding:10px 14px;border-bottom:1px solid var(--teal-200)">
           <div style="font-size:14px;font-weight:700;color:var(--teal-800)">👤 ${d.nama||'-'}</div>
-          <div style="font-size:12px;color:var(--teal-600);margin-top:2px">${d.desa||''}${d.kecamatan?' · '+d.kecamatan:''} · ${d.luas||'-'} ha · ${d.varietas||'-'}${d.bentukJual?' · '+bentukIcon+' '+d.bentukJual:''}</div>
+          <div style="font-size:12px;color:var(--teal-600);margin-top:2px">${d.desa||''}${d.kecamatan?' · '+d.kecamatan:''} · ${d.luas||'-'} ha · ${d.varietas||'-'}${d.bentukJual?' · '+d.bentukJual:''}</div>
         </div>
         <!-- Judul HASIL ANALISIS -->
         <div style="background:var(--teal-600);padding:8px 14px">
@@ -3616,18 +3669,18 @@ function simpanJPG(d){
 
   // Data baris — BPP dipanjangkan
   const rows = [
-    ['Total Panen', fmt(r.totalKg) + ' kg'],
-    d.luas>0    ? ['Produksi per Hektar', fmt(r.prodPerHa) + ' kg/ha'] : null,
-    r.totalKg>0 ? ['Harga Jual Rata-rata', 'Rp ' + fmt(r.hargaRataRata) + '/kg'] : null,
-    ['Total Biaya Produksi', 'Rp ' + fmt(r.totalBiaya)],
-    ['Total Pendapatan', 'Rp ' + fmt(r.totalNilai)],
-    r.totalKg>0 ? ['Biaya Pokok Produksi (BPP) per kg', 'Rp ' + fmt(r.bpp)] : null,
-    r.totalKg>0 ? ['Keuntungan per kg', 'Rp ' + fmt(r.untungPerKg)] : null,
-    d.luas>0    ? ['Keuntungan per Hektar', 'Rp ' + fmt(r.untungPerHa)] : null,
+    ['Total Panen', fmt(r.totalKg) + ' kg', false],
+    d.luas>0    ? ['Produksi per Hektar', fmt(r.prodPerHa) + ' kg/ha', false] : null,
+    r.totalKg>0 ? ['Harga Jual Rata-rata', 'Rp ' + fmt(r.hargaRataRata) + '/kg', false] : null,
+    ['Total Biaya Produksi', 'Rp ' + fmt(r.totalBiaya), true],
+    ['Total Pendapatan', 'Rp ' + fmt(r.totalNilai), true],
+    r.totalKg>0 ? ['Biaya Pokok Produksi (BPP) per kg', 'Rp ' + fmt(r.bpp), false] : null,
+    r.totalKg>0 ? ['Keuntungan per kg', 'Rp ' + fmt(r.untungPerKg), false] : null,
+    d.luas>0    ? ['Keuntungan per Hektar', 'Rp ' + fmt(r.untungPerHa), false] : null,
   ].filter(Boolean);
 
   const W = 720, pad = 30;
-  const rowH = 60, headerH = 140, stripH = 60, labaH = 90, footerH = 48;
+  const rowH = 60, headerH = 140, stripH = 70, labaH = 90, footerH = 48;
   const H = headerH + stripH + rowH * rows.length + labaH + footerH;
 
   const cv = document.createElement('canvas');
@@ -3663,18 +3716,19 @@ function simpanJPG(d){
 
     // ── Judul header ─────────────────────────────────────────────────────────
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 26px sans-serif';
+    ctx.font = 'bold 30px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('Analisis Usaha Tani Tembakau', textStartX, 46);
-    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('Analisis Usaha Tani Tembakau', textStartX, 52);
+    ctx.font = 'bold 20px sans-serif';
     ctx.fillStyle = '#ccfbf1';
-    ctx.fillText('SACAKA — Dinas Pertanian dan Pangan', textStartX, 72);
-    ctx.fillText('Kab. Demak', textStartX, 92);
-    ctx.font = '14px sans-serif';
+    ctx.fillText('SACAKA — Dinas Pertanian dan Pangan Kab. Demak', textStartX, 82);
+    ctx.font = '17px sans-serif';
     ctx.fillStyle = '#e0f2f1';
-    const bentukStr = d.bentukJual ? ' · ' + bentukIcon + ' ' + d.bentukJual : '';
-    ctx.fillText('Musim ' + thn + bentukStr, textStartX, 114);
-    ctx.fillText((d.luas||'-') + ' ha  ·  Varietas: ' + (d.varietas||'-'), textStartX, 132);
+    const bentukLabel = d.bentukJual==='Rajangan Kering' ? 'Rajangan' : d.bentukJual==='Daun Basah' ? 'Daun' : d.bentukJual || '';
+    const infoLine = [d.varietas||'-', bentukLabel, d.luas>0 ? d.luas+' ha' : null, thn].filter(Boolean).join('  ·  ');
+    ctx.font = '19px sans-serif';
+    ctx.fillStyle = '#e0f2f1';
+    ctx.fillText(infoLine, textStartX, 116);
 
     // ── Strip identitas petani ────────────────────────────────────────────────
     ctx.fillStyle = '#f0fdfa';
@@ -3687,16 +3741,16 @@ function simpanJPG(d){
     ctx.beginPath(); ctx.moveTo(0, headerH + stripH); ctx.lineTo(W, headerH + stripH); ctx.stroke();
 
     // Strip 2 baris: Nama+Poktan (atas) | Desa+Kecamatan (bawah)
-    const sY1 = headerH + 22;
-    const sY2 = headerH + 46;
+    const sY1 = headerH + 26;
+    const sY2 = headerH + 56;
     ctx.font = 'bold 22px sans-serif';
     ctx.fillStyle = '#0f766e';
     ctx.textAlign = 'left';
-    ctx.fillText('👤  ' + (d.nama    || '-'), pad, sY1);
-    ctx.fillText('🏠  ' + (d.desa    || '-'), pad, sY2);
+    ctx.fillText('Nama: ' + (d.nama      || '-'), pad, sY1);
+    ctx.fillText('Poktan: ' + (d.poktan  || '-'), pad, sY2);
     ctx.textAlign = 'right';
-    ctx.fillText('🤝  ' + (d.poktan     || '-'), W - pad, sY1);
-    ctx.fillText('📍  ' + (d.kecamatan  || '-'), W - pad, sY2);
+    ctx.fillText('Ds: ' + (d.desa        || '-'), W - pad, sY1);
+    ctx.fillText('Kec: ' + (d.kecamatan  || '-'), W - pad, sY2);
     ctx.textAlign = 'left';
 
     // ── Baris data ───────────────────────────────────────────────────────────
@@ -3708,8 +3762,8 @@ function simpanJPG(d){
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, y + rowH); ctx.lineTo(W, y + rowH); ctx.stroke();
       // Label kiri
-      ctx.fillStyle = '#475569';
-      ctx.font = '22px sans-serif';
+      ctx.fillStyle = row[2] ? '#0f172a' : '#475569';
+      ctx.font = row[2] ? 'bold 22px sans-serif' : '22px sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText(row[0], pad, y + rowH * 0.63);
       // Nilai kanan
@@ -3745,8 +3799,10 @@ function simpanJPG(d){
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     const now = new Date();
-    ctx.fillText('Dicetak: ' + now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}), W / 2, y + 18);
-    ctx.fillText('SACAKA – Sistem Aplikasi Cuaca & Kalkulator Tembakau Kab. Demak', W / 2, y + 35);
+    const tglCetak = now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
+      + ', ' + now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    ctx.fillText('Dicetak: ' + tglCetak + '  |  sacaka.web.id', W / 2, y + 18);
+    ctx.fillText('SACAKA – Sistem Aplikasi Cuaca Tembakau Kab. Demak', W / 2, y + 35);
 
     // ── Download ─────────────────────────────────────────────────────────────
     const link = document.createElement('a');
@@ -4101,11 +4157,7 @@ function renderMonthlyGrid(currentMonth, maxRain){
       const panel = document.createElement('div');
       panel.id = 'fase-detail-panel';
       curRow.insertAdjacentElement('afterend', panel);
-      renderFasePanel(currentMonth);
-      // Scroll ke bulan berjalan setelah DOM siap
-      setTimeout(()=>{
-        curRow.scrollIntoView({behavior:'smooth', block:'center'});
-      }, 120);
+      renderFasePanel(currentMonth, true);
     }
   }
 }
@@ -4135,7 +4187,7 @@ function toggleFaseDetail(m){
   renderFasePanel(m);
 }
 
-function renderFasePanel(m){
+function renderFasePanel(m, noScroll){
   const panel = document.getElementById('fase-detail-panel');
   if(!panel) return;
 
@@ -4167,8 +4219,8 @@ function renderFasePanel(m){
       ${rows}
     </div>`;
   }
-  // Scroll supaya panel terlihat
-  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
+  // Scroll supaya panel terlihat — hanya jika dipanggil manual oleh user
+  if(!noScroll) setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
 }
 
 function showError(msg){
@@ -4183,7 +4235,6 @@ function showError(msg){
 function setLocation(name){
   currentLocation=name;
   usingGPS=false;
-  document.querySelectorAll('.kecamatan-btn').forEach(b=>b.classList.toggle('active',b.textContent===name));
   const gpsBtn=document.getElementById('gps-btn');
   gpsBtn.classList.remove('locating');
   document.getElementById('gps-label').textContent='📍 Gunakan GPS';
@@ -4291,7 +4342,6 @@ function useGPS(){
   btn.classList.add('locating');
   document.getElementById('gps-label').textContent='⏳ Mencari...';
   setGPSStatus('Mendeteksi posisi Anda...');
-  document.querySelectorAll('.kecamatan-btn').forEach(b=>b.classList.remove('active'));
   currentLocation=null;
   usingGPS=true;
 
@@ -4347,7 +4397,6 @@ window.addEventListener('load',()=>{
         reverseGeocode(lat,lon).then(nama=>{
           document.getElementById('loc-name').textContent=nama;
         });
-        document.querySelectorAll('.kecamatan-btn').forEach(b=>b.classList.remove('active'));
         fetchWeather(lat,lon);
       },
       ()=>{ clearTimeout(fallback); fetchWeather(); },
