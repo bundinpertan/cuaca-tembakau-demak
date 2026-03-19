@@ -1396,6 +1396,61 @@ body.dark-mode .jarak-stat            { color: #aaa; }
 body.dark-mode .jarak-stat span       { color: #e0e0e0; }
 body.dark-mode .dim-badge             { background: #252525; border-color: var(--teal-600); color: var(--teal-300); }
 
+/* ── MODAL PREVIEW GAMBAR ───────────────── */
+.preview-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  z-index: 950;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.preview-modal-bg.open { opacity: 1; pointer-events: all; }
+.preview-modal {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+.preview-modal-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #0f766e;
+  color: #fff;
+}
+.preview-modal-title { font-size: 14px; font-weight: 700; }
+.preview-modal-actions { display: flex; gap: 8px; }
+.btn-preview-download {
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.4);
+  border-radius: 8px; padding: 6px 12px;
+  color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.btn-preview-close {
+  background: rgba(255,255,255,.15); border: none;
+  border-radius: 8px; padding: 6px 10px;
+  color: #fff; font-size: 14px; cursor: pointer;
+}
+.preview-modal-body {
+  overflow-y: auto; overflow-x: auto;
+  padding: 12px;
+  background: #f8fafc;
+}
+.preview-modal-body img {
+  display: block; max-width: 100%; border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.preview-hint {
+  font-size: 11px; color: #94a3b8;
+  text-align: center; padding: 8px 0 2px;
+  font-style: italic;
+}
+
 /* ── TENTANG MODAL ──────────────────────── */
 .tentang-modal-bg {
   position: fixed; inset: 0;
@@ -1968,6 +2023,23 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
   </div>
 </div>
 
+<!-- ── MODAL PREVIEW GAMBAR ─────────────────────────────────────────────── -->
+<div class="preview-modal-bg" id="preview-modal">
+  <div class="preview-modal">
+    <div class="preview-modal-header">
+      <div class="preview-modal-title">📊 Hasil Analisis Usaha Tani</div>
+      <div class="preview-modal-actions">
+        <button class="btn-preview-download" onclick="downloadPreviewImg()">💾 Simpan</button>
+        <button class="btn-preview-close" onclick="closePreviewModal()">✕</button>
+      </div>
+    </div>
+    <div class="preview-modal-body">
+      <img id="preview-img" src="" alt="Analisis Usaha Tani">
+      <div class="preview-hint">Tekan & tahan gambar untuk menyimpan, atau tap 💾 Simpan</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── BOTTOM NAV ─────────────────────────────────────────────────────── -->
 <nav class="bottom-nav">
   <button class="nav-item active" onclick="switchTab('cuaca',this)">
@@ -2046,6 +2118,18 @@ function switchTab(name, btn){
     const month = new Date().getMonth() + 1;
     renderMonthlyGrid(month);
   }
+}
+
+// ── Modal Preview Gambar ──────────────────────────────────────────────────
+function closePreviewModal(){
+  document.getElementById('preview-modal').classList.remove('open');
+}
+function downloadPreviewImg(){
+  const img = document.getElementById('preview-img');
+  const link = document.createElement('a');
+  link.download = img._filename || 'SACAKA_AUTTembakau.jpg';
+  link.href = img._dataUrl || img.src;
+  link.click();
 }
 
 // ── Modal Tentang ─────────────────────────────────────────────────────────
@@ -3576,16 +3660,23 @@ function simpanJPG(d){
   const thn = d.tahun || new Date().getFullYear();
 
   // Data baris — BPP dipanjangkan
-  const rows = [
+  // Baris atas: sebelum UNTUNG/RUGI
+  const rowsAtas = [
     ['Total Panen', fmt(r.totalKg) + ' kg', false],
     d.luas>0    ? ['Produksi per Hektar', fmt(r.prodPerHa) + ' kg/ha', false] : null,
     r.totalKg>0 ? ['Harga Jual Rata-rata', 'Rp ' + fmt(r.hargaRataRata) + '/kg', false] : null,
     ['Total Biaya Produksi', 'Rp ' + fmt(r.totalBiaya), true],
     ['Total Pendapatan', 'Rp ' + fmt(r.totalNilai), true],
+  ].filter(Boolean);
+
+  // Baris bawah: detail setelah UNTUNG/RUGI
+  const rowsBawah = [
     r.totalKg>0 ? ['Biaya Pokok Produksi (BPP) per kg', 'Rp ' + fmt(r.bpp), false] : null,
     r.totalKg>0 ? ['Keuntungan per kg', 'Rp ' + fmt(r.untungPerKg), false] : null,
     d.luas>0    ? ['Keuntungan per Hektar', 'Rp ' + fmt(r.untungPerHa), false] : null,
   ].filter(Boolean);
+
+  const rows = [...rowsAtas, ...rowsBawah]; // untuk referensi panjang total
 
   const W = 720, pad = 30;
   const rowH = 60, headerH = 140, stripH = 70, labaH = 90, footerH = 48;
@@ -3661,20 +3752,18 @@ function simpanJPG(d){
     ctx.fillText('Kec: ' + (d.kecamatan  || '-'), W - pad, sY2);
     ctx.textAlign = 'left';
 
-    // ── Baris data ───────────────────────────────────────────────────────────
+    // ── Baris atas ───────────────────────────────────────────────────────────
     let y = headerH + stripH;
-    rows.forEach((row, i) => {
+    rowsAtas.forEach((row, i) => {
       ctx.fillStyle = i % 2 === 0 ? '#f8fafc' : '#ffffff';
       ctx.fillRect(0, y, W, rowH);
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, y + rowH); ctx.lineTo(W, y + rowH); ctx.stroke();
-      // Label kiri
       ctx.fillStyle = row[2] ? '#0f172a' : '#475569';
       ctx.font = row[2] ? 'bold 22px sans-serif' : '22px sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText(row[0], pad, y + rowH * 0.63);
-      // Nilai kanan
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 27px sans-serif';
       ctx.textAlign = 'right';
@@ -3697,6 +3786,24 @@ function simpanJPG(d){
     ctx.fillText('Rp ' + fmt(Math.abs(r.untungRugi)), W - pad, y + labaH * 0.58);
     y += labaH;
 
+    // ── Baris bawah (detail) ─────────────────────────────────────────────────
+    rowsBawah.forEach((row, i) => {
+      ctx.fillStyle = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+      ctx.fillRect(0, y, W, rowH);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, y + rowH); ctx.lineTo(W, y + rowH); ctx.stroke();
+      ctx.fillStyle = '#475569';
+      ctx.font = '22px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(row[0], pad, y + rowH * 0.63);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 27px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(row[1], W - pad, y + rowH * 0.65);
+      y += rowH;
+    });
+
     // ── Footer ───────────────────────────────────────────────────────────────
     ctx.fillStyle = '#f1f5f9';
     ctx.fillRect(0, y, W, footerH);
@@ -3712,11 +3819,14 @@ function simpanJPG(d){
     ctx.fillText('Dicetak: ' + tglCetak + '  |  sacaka.web.id', W / 2, y + 18);
     ctx.fillText('SACAKA – Sistem Aplikasi Cuaca Tembakau Kab. Demak', W / 2, y + 35);
 
-    // ── Download ─────────────────────────────────────────────────────────────
-    const link = document.createElement('a');
-    link.download = 'SACAKA_AnalisisUST_' + (d.nama||'petani').replace(/\s+/g,'_') + '_' + thn + '.jpg';
-    link.href = cv.toDataURL('image/jpeg', 0.93);
-    link.click();
+    // ── Tampilkan di modal preview ────────────────────────────────────────────
+    const dataUrl = cv.toDataURL('image/jpeg', 0.93);
+    const fname = 'SACAKA_AUTTembakau_' + (d.nama||'petani').replace(/\s+/g,'_') + '_' + thn + '.jpg';
+    const previewImg = document.getElementById('preview-img');
+    previewImg.src = dataUrl;
+    previewImg._filename = fname;
+    previewImg._dataUrl  = dataUrl;
+    document.getElementById('preview-modal').classList.add('open');
   } // end _drawContentAndDownload
 
   // Panggil async: load logo dulu, baru gambar semua & download
