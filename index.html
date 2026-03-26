@@ -18,6 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="SACAKA">
 <meta name="theme-color" content="#1a3d3a">
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════
    SACAKA — Design System
@@ -1029,6 +1030,73 @@ body.dark-mode .monitor-card-loc { color: var(--teal-300); }
 body.dark-mode .monitor-stat { background: #162422; }
 body.dark-mode .monitor-stat-val { color: #e0e0e0; }
 body.dark-mode .monitor-rec { background: #0f2422; color: #7de8df; }
+
+/* ── Monitor: Grafik 24 Jam ─────────────────── */
+.monitor-chart-wrap {
+  margin-top: 10px;
+  padding: 10px 10px 6px;
+  background: var(--gray-50);
+  border-radius: 10px;
+  border: 1px solid var(--gray-100);
+}
+.monitor-chart-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal-700);
+  margin-bottom: 6px;
+  letter-spacing: .3px;
+}
+.monitor-chart-canvas { width: 100% !important; height: 130px !important; }
+.monitor-chart-summary {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--gray-500);
+  line-height: 1.5;
+}
+.monitor-chart-summary span { margin-right: 8px; }
+
+/* ── Monitor: Insight 24 Jam ────────────────── */
+.monitor-hourly-insight {
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: #e8f5f3;
+  border-left: 3px solid var(--teal-500);
+  border-radius: 0 8px 8px 0;
+  font-size: 11px;
+  color: var(--teal-800);
+  line-height: 1.55;
+}
+body.dark-mode .monitor-hourly-insight { background: #0e2a28; color: #7de8df; }
+
+/* ── Monitor: OPT Summary ───────────────────── */
+.monitor-opt-summary {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.monitor-opt-summary.opt-waspada {
+  background: #fff3cd;
+  border-left: 3px solid #e6a817;
+  color: #7a4f00;
+}
+.monitor-opt-summary.opt-aman {
+  background: #e8f5e9;
+  border-left: 3px solid #4caf50;
+  color: #1b5e20;
+}
+.monitor-opt-label {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+.monitor-opt-list { color: inherit; opacity: .85; }
+body.dark-mode .monitor-opt-summary.opt-waspada { background: #2a1f00; color: #ffd54f; border-color: #e6a817; }
+body.dark-mode .monitor-opt-summary.opt-aman    { background: #0f2a15; color: #81c784; border-color: #4caf50; }
+body.dark-mode .monitor-chart-wrap { background: #162422; border-color: #2a4a46; }
+body.dark-mode .monitor-chart-title { color: var(--teal-300); }
+body.dark-mode .monitor-chart-summary { color: #888; }
 
 /* ── JARAK TANAM ────────────────────────── */
 .jarak-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -4887,6 +4955,7 @@ function closeMonitorOutside(e){
 async function fetchMonitorWeather(lat, lon){
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
     + `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,apparent_temperature`
+    + `&hourly=temperature_2m,precipitation,precipitation_probability,relative_humidity_2m,wind_speed_10m`
     + `&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,weather_code`
     + `&forecast_days=10&timezone=Asia%2FJakarta`;
   const res = await fetch(url);
@@ -4935,9 +5004,214 @@ function calcRekPrioritas(locName, das, cur){
   return recs;
 }
 
+// ── Monitor: Ambil slice hourly 24 jam mulai sekarang ────────────────────
+function getHourlySlice24(hourly){
+  if(!hourly || !hourly.time) return null;
+  const now = new Date();
+  const nowH = now.getHours();
+  // Cari index jam sekarang atau terdekat setelahnya
+  let startIdx = -1;
+  for(let i=0; i<hourly.time.length; i++){
+    const t = new Date(hourly.time[i]);
+    if(t.getHours() >= nowH && t.toDateString() === now.toDateString()){
+      startIdx = i; break;
+    }
+  }
+  if(startIdx < 0) startIdx = 0;
+  // Ambil 9 titik (sekarang + 24 jam ke depan ~3 jam interval → setiap 3 jam)
+  const indices = [];
+  for(let i=0; i<9; i++){
+    const idx = startIdx + i*3;
+    if(idx < hourly.time.length) indices.push(idx);
+  }
+  return indices.map(idx => ({
+    time: hourly.time[idx],
+    temp: hourly.temperature_2m[idx],
+    rain: hourly.precipitation[idx] || 0,
+    rainProb: hourly.precipitation_probability ? (hourly.precipitation_probability[idx]||0) : 0,
+    humid: hourly.relative_humidity_2m[idx],
+    wind: hourly.wind_speed_10m[idx]
+  }));
+}
+
+// ── Monitor: Render grafik 24 jam ────────────────────────────────────────
+let _monitorCharts = {}; // simpan instance chart agar bisa di-destroy saat refresh
+
+function renderMonitorChart(canvasId, slice){
+  if(!slice || slice.length === 0) return;
+  // Destroy chart lama jika ada
+  if(_monitorCharts[canvasId]){
+    _monitorCharts[canvasId].destroy();
+    delete _monitorCharts[canvasId];
+  }
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+
+  const labels = slice.map(d => {
+    const t = new Date(d.time);
+    const hh = t.getHours().toString().padStart(2,'0');
+    const isNow = slice.indexOf(d) === 0;
+    return isNow ? 'Skrg' : hh+':00';
+  });
+
+  const darkMode = document.body.classList.contains('dark-mode');
+  const gridColor = darkMode ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)';
+  const textColor = darkMode ? '#9db8b5' : '#888';
+
+  const chart = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'CH (mm)',
+          data: slice.map(d => d.rain),
+          backgroundColor: 'rgba(56,161,220,.55)',
+          borderColor: 'rgba(56,161,220,.8)',
+          borderWidth: 1,
+          borderRadius: 3,
+          yAxisID: 'yRain',
+          order: 2
+        },
+        {
+          type: 'line',
+          label: 'Suhu (°C)',
+          data: slice.map(d => d.temp),
+          borderColor: '#e86a2e',
+          backgroundColor: 'rgba(232,106,46,.10)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: .35,
+          fill: false,
+          yAxisID: 'yTemp',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              return slice[idx].time.replace('T',' ').substring(0,16);
+            },
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              const d = slice[idx];
+              return [
+                `💧 Kelembaban: ${Math.round(d.humid)}%`,
+                `💨 Angin: ${Math.round(d.wind)} km/h`,
+                `🌧 Peluang Hujan: ${Math.round(d.rainProb)}%`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: textColor, font: { size: 9 }, maxRotation: 0 },
+          grid: { color: gridColor }
+        },
+        yTemp: {
+          position: 'left',
+          ticks: { color: '#e86a2e', font: { size: 9 }, callback: v => v+'°' },
+          grid: { color: gridColor },
+          title: { display: false }
+        },
+        yRain: {
+          position: 'right',
+          ticks: { color: 'rgba(56,161,220,.9)', font: { size: 9 }, callback: v => v+'mm' },
+          grid: { drawOnChartArea: false },
+          min: 0
+        }
+      }
+    }
+  });
+  _monitorCharts[canvasId] = chart;
+}
+
+// ── Monitor: Insight otomatis 24 jam (rule-based) ────────────────────────
+function buildHourlyInsight(slice, locName){
+  if(!slice || slice.length === 0) return 'Data jam-an tidak tersedia.';
+  const msgs = [];
+
+  // Cari jam puncak hujan
+  const maxRain = Math.max(...slice.map(d=>d.rain));
+  if(maxRain >= 2){
+    const pkIdx = slice.findIndex(d=>d.rain === maxRain);
+    const pkJam = new Date(slice[pkIdx].time).getHours().toString().padStart(2,'0')+':00';
+    msgs.push(`🌧 Puncak hujan diprediksi pkl ${pkJam} (${maxRain.toFixed(1)} mm).`);
+  } else if(maxRain > 0){
+    msgs.push(`🌦 Potensi hujan ringan hingga ${maxRain.toFixed(1)} mm dalam 24 jam ke depan.`);
+  } else {
+    msgs.push(`☀️ Tidak ada hujan berarti dalam 24 jam ke depan.`);
+  }
+
+  // Suhu tertinggi
+  const maxTemp = Math.max(...slice.map(d=>d.temp));
+  const maxTempIdx = slice.findIndex(d=>d.temp===maxTemp);
+  const maxTempJam = new Date(slice[maxTempIdx].time).getHours().toString().padStart(2,'0')+':00';
+  if(maxTemp >= 33){
+    msgs.push(`🔴 Suhu memuncak ${Math.round(maxTemp)}°C pkl ${maxTempJam} — stres panas tinggi, hindari penyemprotan siang hari.`);
+  } else if(maxTemp >= 30){
+    msgs.push(`🌡️ Suhu maks ${Math.round(maxTemp)}°C pkl ${maxTempJam}.`);
+  }
+
+  // Kelembaban terendah
+  const minHumid = Math.min(...slice.map(d=>d.humid));
+  if(minHumid < 65){
+    msgs.push(`⚠️ RH turun hingga ${Math.round(minHumid)}% — risiko Thrips & Krupuk meningkat. Koordinasi PPL.`);
+  } else if(minHumid > 85 && maxRain >= 1){
+    msgs.push(`💧 RH tinggi (>${Math.round(minHumid)}%) — kondisi mendukung perkembangan jamur & bakteri.`);
+  }
+
+  // Angin kencang
+  const maxWind = Math.max(...slice.map(d=>d.wind));
+  if(maxWind >= 25){
+    msgs.push(`💨 Angin kencang hingga ${Math.round(maxWind)} km/h — tunda penyemprotan pestisida.`);
+  }
+
+  return msgs.join(' ');
+}
+
+// ── Monitor: OPT summary per lokasi ──────────────────────────────────────
+function buildMonitorOPTSummary(cur, daily){
+  const month = new Date().getMonth()+1;
+  const humid = cur ? cur.relative_humidity_2m : 70;
+  const temp  = cur ? cur.temperature_2m : 28;
+  const rain7 = daily && daily.precipitation_sum
+    ? daily.precipitation_sum.slice(0,7).reduce((a,b)=>a+(b||0),0) : 0;
+
+  const waspada = OPT_PANDUAN.filter(opt => {
+    const inMonth = opt.threshold_months.includes(month);
+    const kondisiAktif = opt.cek ? opt.cek(humid, rain7, temp) : true;
+    return inMonth && kondisiAktif;
+  });
+
+  if(waspada.length === 0){
+    return `<div class="monitor-opt-summary opt-aman">
+      <div class="monitor-opt-label">✅ Risiko OPT: Rendah</div>
+      <div class="monitor-opt-list">Tidak ada OPT yang perlu diwaspadai saat ini.</div>
+    </div>`;
+  }
+
+  const namaList = waspada.map(o => o.nama.replace(/^[^\s]+\s/,'')).join(', ');
+  return `<div class="monitor-opt-summary opt-waspada">
+    <div class="monitor-opt-label">⚠️ OPT Waspada: ${waspada.length} jenis</div>
+    <div class="monitor-opt-list">${namaList}</div>
+  </div>`;
+}
+
 function renderMonitorCard(loc, data){
   const cur = data.current;
   const daily = data.daily;
+  const hourly = data.hourly;
   const wInfo = getWeatherInfo(cur.weather_code);
   const das = calcDasarian(daily, loc.name);
   const dasIcon = das.klass==='aman'?'✅':das.klass==='waspada'?'⚠️':'🚨';
@@ -4945,6 +5219,26 @@ function renderMonitorCard(loc, data){
   // Hujan total 10 hari
   let rain10 = 0;
   if(daily && daily.precipitation_sum) daily.precipitation_sum.forEach(r=>rain10+=r||0);
+
+  // Data hourly 24 jam
+  const slice = getHourlySlice24(hourly);
+  const canvasId = `chart-monitor-${loc.name.toLowerCase().replace(/\s/g,'-')}`;
+
+  // Ringkasan angin & RH untuk teks di bawah grafik
+  let chartSummary = '';
+  if(slice && slice.length > 0){
+    const maxWind = Math.max(...slice.map(d=>d.wind));
+    const minHumid = Math.min(...slice.map(d=>d.humid));
+    const maxWindJam = new Date(slice.find(d=>d.wind===maxWind).time).getHours().toString().padStart(2,'0')+':00';
+    chartSummary = `<span>💨 Angin maks: ${Math.round(maxWind)} km/h pkl ${maxWindJam}</span>`
+      + `<span>💧 RH terendah: ${Math.round(minHumid)}%</span>`;
+  }
+
+  // Insight otomatis
+  const insight = slice ? buildHourlyInsight(slice, loc.name) : '';
+
+  // OPT summary
+  const optSummary = buildMonitorOPTSummary(cur, daily);
 
   return `
   <div class="monitor-card">
@@ -4979,6 +5273,17 @@ function renderMonitorCard(loc, data){
         Proyeksi 10 hari: <strong>${das.projected} mm</strong>
         · Trigger ${das.trigger}mm · Exit ${das.exit}mm
       </div>
+
+      ${slice ? `
+      <div class="monitor-chart-wrap">
+        <div class="monitor-chart-title">📈 Prakiraan 24 Jam ke Depan</div>
+        <canvas id="${canvasId}" class="monitor-chart-canvas"></canvas>
+        <div class="monitor-chart-summary">${chartSummary}</div>
+      </div>
+      <div class="monitor-hourly-insight">${insight}</div>
+      ` : ''}
+
+      ${optSummary}
     </div>
   </div>`;
 }
@@ -4996,6 +5301,13 @@ async function loadMonitor(){
 
     // Render kartu
     body.innerHTML = MONITOR_LOCS.map((loc, i) => renderMonitorCard(loc, results[i])).join('');
+
+    // Render grafik (harus setelah HTML ada di DOM)
+    MONITOR_LOCS.forEach((loc, i) => {
+      const canvasId = `chart-monitor-${loc.name.toLowerCase().replace(/\s/g,'-')}`;
+      const slice = getHourlySlice24(results[i].hourly);
+      if(slice) renderMonitorChart(canvasId, slice);
+    });
 
     // Kumpulkan semua rekomendasi prioritas
     const allRecs = [];
