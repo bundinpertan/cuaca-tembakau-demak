@@ -948,6 +948,18 @@ body.dark-mode .landing-input { background: #2a2a2a; border-color: #444; color: 
   margin-top: 3px;
   letter-spacing: -.4px;
 }
+.salam-nama-row { display: flex; align-items: center; gap: 8px; }
+.salam-edit-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 15px; padding: 2px 4px;
+  border-radius: 6px;
+  opacity: .55;
+  transition: opacity .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.salam-edit-btn:hover { opacity: 1; background: rgba(0,122,117,.1); }
 .salam-kanan { text-align: right; flex-shrink: 0; }
 .salam-bulan {
   font-size: 13px;
@@ -1062,7 +1074,7 @@ body.dark-mode .kegiatan-desc  { color: #888; }
   justify-content: space-between;
 }
 .card-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--gray-700);
   display: flex;
@@ -1502,7 +1514,7 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
   padding: 0 16px 4px;
 }
 .uat-section-title {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--green-600);
   text-transform: uppercase;
@@ -1515,7 +1527,7 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
   margin-bottom: 10px;
 }
 .uat-label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--gray-600);
   margin-bottom: 4px;
@@ -1543,7 +1555,7 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
   margin-bottom: 6px;
 }
 .petikan-num {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--green-600);
   background: var(--green-50);
@@ -1591,20 +1603,36 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
 .catatan-musim.open .catatan-musim-body { display: block; }
 .riwayat-untung { color: #007a75; }
 .riwayat-rugi { color: #dc2626; }
-.riwayat-actions { display: flex; gap: 6px; margin-top: 10px; }
+.riwayat-actions { display: flex; gap: 8px; margin-top: 12px; }
 .catatan-edit, .catatan-del {
-  background: none; border: 1px solid var(--gray-200);
-  font-size: 12px; cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 6px;
-  transition: background .15s;
+  flex: 1;
+  border: none;
+  font-size: 13px; cursor: pointer;
+  padding: 9px 12px;
+  border-radius: 8px;
+  transition: opacity .15s, transform .1s;
   -webkit-tap-highlight-color: transparent;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  color: var(--gray-600);
+  font-weight: 600;
+  letter-spacing: .01em;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-.catatan-edit:hover { background: var(--green-50); border-color: var(--green-300); }
-.catatan-del:hover  { background: #fef2f2; border-color: #fca5a5; }
+.catatan-edit {
+  background: #007a75;
+  color: #fff;
+}
+.catatan-del {
+  background: #dc2626;
+  color: #fff;
+}
+.catatan-edit:hover  { opacity: .88; }
+.catatan-del:hover   { opacity: .88; }
+.catatan-edit:active, .catatan-del:active { transform: scale(.97); }
 .catatan-empty { padding: 24px; text-align: center; color: var(--gray-400); font-size: 13px; }
+.profil-modal { max-width: 340px; }
+.profil-modal-title { font-size: 17px; font-weight: 800; color: var(--gray-800); margin-bottom: 16px; }
+.profil-modal-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+body.dark-mode .profil-modal-title { color: #e0e0e0; }
 
 /* ── BOTTOM NAV ─────────────────────────── */
 .bottom-nav {
@@ -1776,7 +1804,8 @@ body.dark-mode .catatan-musim { border-color: #333; }
 body.dark-mode .catatan-musim-head { background: #252525; }
 body.dark-mode .uat-section-title { color: var(--green-400); border-color: #1a3d3a; }
 body.dark-mode .uat-label { color: #aaa; }
-body.dark-mode .catatan-edit, body.dark-mode .catatan-del { border-color: #444; color: #ccc; }
+body.dark-mode .catatan-edit { background: #009e97; }
+body.dark-mode .catatan-del  { background: #ef4444; }
 body.dark-mode .petikan-num { background: #0a2e2b; color: var(--green-300); }
 body.dark-mode .season-band.kemarau   { background: #2a2000; border-color: #4a3800; }
 body.dark-mode .season-band.hujan     { background: #001a2a; border-color: #003050; }
@@ -2054,7 +2083,10 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
     <div class="salam-header" id="salam-header">
       <div class="salam-kiri">
         <div class="salam-greeting" id="salam-greeting">Sugeng enjang,</div>
-        <div class="salam-nama" id="salam-nama">—</div>
+        <div class="salam-nama-row">
+          <div class="salam-nama" id="salam-nama">—</div>
+          <button class="salam-edit-btn" onclick="bukaEditProfil()" title="Edit jeneng">✏️</button>
+        </div>
       </div>
       <div class="salam-kanan">
         <div class="salam-bulan" id="salam-bulan">—</div>
@@ -2116,12 +2148,12 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
       <div class="qa-card cuaca2" onclick="switchTab('cuaca2', document.querySelector('.nav-item:nth-child(2)'))">
         <div class="qa-card-icon">🌤️</div>
         <div class="qa-card-label">Cuaca Detail</div>
-        <div class="qa-card-sub">Prakiraan 7 dina</div>
+        <div class="qa-card-sub">Hawane sesuk-sesuk</div>
         <div class="qa-card-arrow">›</div>
       </div>
       <div class="qa-card risiko" onclick="switchTab('risiko', document.querySelector('.nav-item:nth-child(3)'))">
         <div class="qa-card-icon">🐛</div>
-        <div class="qa-card-label">Hama & Risiko</div>
+        <div class="qa-card-label">Hama Penyakit</div>
         <div class="qa-card-sub">Status OPT dina iki</div>
         <div class="qa-card-arrow">›</div>
       </div>
@@ -2301,7 +2333,7 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
       <div class="card-header">
         <div class="card-title">
           <div class="card-title-icon">📋</div>
-          Kalkulator Usaha Tani Tembakau <span id="uat-tahun-label" style="font-size:12px;color:var(--green-500);font-weight:600;margin-left:4px"></span>
+          Kalkulator Usaha Tani Tembakau <span id="uat-tahun-label" style="font-size:14px;color:var(--green-500);font-weight:600;margin-left:4px"></span>
         </div>
       </div>
 
@@ -2427,8 +2459,8 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
         <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px">Isi petikan yang dilakukan (s.d. petikan ke-7)</div>
         <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;margin-bottom:4px;padding:0 2px">
           <span></span>
-          <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-align:center">Hasil (kg)</span>
-          <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-align:center">Harga (Rp/kg)</span>
+          <span style="font-size:13px;font-weight:700;color:var(--gray-500);text-align:center">Hasil (kg)</span>
+          <span style="font-size:13px;font-weight:700;color:var(--gray-500);text-align:center">Harga (Rp/kg)</span>
         </div>
         <div id="petikan-rows">
           <!-- diisi JS -->
@@ -4841,6 +4873,106 @@ if ('serviceWorker' in navigator) {
       .then(reg => console.log('SACAKA SW terdaftar:', reg.scope))
       .catch(err => console.warn('SACAKA SW gagal:', err));
   });
+}
+</script>
+
+
+<!-- ── MODAL EDIT PROFIL (tampilan seperti landing page) ─────────────────── -->
+<div class="landing-overlay hidden" id="profil-edit-overlay">
+  <div class="landing-box">
+    <div class="landing-logo">SACAKA</div>
+    <div class="landing-salam">Ganti Jeneng</div>
+    <div class="landing-intro">Leresaken jeneng panjenengan ing ngandhap menika.</div>
+    <div class="landing-form">
+      <!-- Sapaan -->
+      <div>
+        <div class="landing-field-label">Sapaan</div>
+        <div class="landing-toggle-group" id="profil-sapaan-group">
+          <button type="button" class="landing-toggle-btn active" data-val="Pak" onclick="pilihSapaanProfil(this)">Pak</button>
+          <button type="button" class="landing-toggle-btn" data-val="Bu" onclick="pilihSapaanProfil(this)">Bu</button>
+        </div>
+      </div>
+      <!-- Nama -->
+      <input class="landing-input" id="profil-nama-input" type="text"
+        placeholder="Nama panjenengan..." maxlength="30" autocomplete="off" />
+      <!-- Tombol Simpan -->
+      <button class="landing-btn" onclick="simpanEditProfil()">Simpen ✓</button>
+      <!-- Ganti pengguna -->
+      <div style="text-align:center;margin-top:4px">
+        <button onclick="gantiPengguna()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-400);font-family:'Plus Jakarta Sans',sans-serif;text-decoration:underline;padding:6px 8px;">
+          🔄 Ganti pengguna lain
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function bukaEditProfil() {
+  const profil = getProfil();
+  const overlay = document.getElementById('profil-edit-overlay');
+  if (!overlay) return;
+
+  // Isi input dari profil tersimpan
+  const namaInput = document.getElementById('profil-nama-input');
+  if (namaInput) namaInput.value = profil ? (profil.nama || '') : '';
+
+  // Sesuaikan toggle sapaan
+  document.querySelectorAll('#profil-sapaan-group .landing-toggle-btn').forEach(b => {
+    b.classList.toggle('active', profil ? b.dataset.val === profil.sapaan : b.dataset.val === 'Pak');
+  });
+
+  overlay.classList.remove('hidden');
+  setTimeout(() => namaInput && namaInput.focus(), 150);
+}
+
+function pilihSapaanProfil(el) {
+  document.querySelectorAll('#profil-sapaan-group .landing-toggle-btn')
+    .forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function simpanEditProfil() {
+  const namaInput = document.getElementById('profil-nama-input');
+  const nama = namaInput ? namaInput.value.trim() : '';
+  if (!nama) {
+    if (namaInput) { namaInput.style.borderColor = '#e53935'; namaInput.focus(); }
+    return;
+  }
+  if (namaInput) namaInput.style.borderColor = '';
+
+  const sapaanBtn = document.querySelector('#profil-sapaan-group .landing-toggle-btn.active');
+  const sapaan = sapaanBtn ? sapaanBtn.dataset.val : 'Pak';
+
+  const profilLama = getProfil() || {};
+  const profilBaru = { ...profilLama, sapaan, nama };
+  localStorage.setItem('sacaka_profil', JSON.stringify(profilBaru));
+
+  renderSalamHeader(profilBaru);
+
+  const overlay = document.getElementById('profil-edit-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function gantiPengguna() {
+  if (!confirm('Badhe ganti pengguna?\nData kalkulator tetep aman, namung jeneng sing diganti.')) return;
+  localStorage.removeItem('sacaka_profil');
+
+  // Tutup modal edit
+  const editOverlay = document.getElementById('profil-edit-overlay');
+  if (editOverlay) editOverlay.classList.add('hidden');
+
+  // Buka landing page lagi + reset form
+  const landingOverlay = document.getElementById('landing-overlay');
+  if (landingOverlay) {
+    const namaEl = document.getElementById('landing-nama');
+    if (namaEl) namaEl.value = '';
+    document.querySelectorAll('#landing-sapaan-group .landing-toggle-btn')
+      .forEach((b, i) => b.classList.toggle('active', i === 0));
+    document.querySelectorAll('#landing-peran-group .landing-toggle-btn')
+      .forEach((b, i) => b.classList.toggle('active', i === 0));
+    landingOverlay.classList.remove('hidden');
+  }
 }
 </script>
 
