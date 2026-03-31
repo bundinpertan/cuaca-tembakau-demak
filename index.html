@@ -2287,6 +2287,10 @@ body.dark-mode .tentang-modal { background: #1a2e2c; }
     <div class="section-label" style="margin-top:16px">🌿 Musim Tembakau Taun Iki Kepiye?</div>
     <div id="ch-banner-section"></div>
 
+    <!-- Banner akhir kemarau Sept–Okt -->
+    <div class="section-label" style="margin-top:16px">🍂 Pungkasane Kemarau: Sept–Okt Kepiye?</div>
+    <div id="ch-banner-sepokt"></div>
+
     <!-- Parameter cuaca sekarang -->
     <div class="section-label" style="margin-top:16px">📊 Kahanan Cuaca Saiki</div>
     <div class="card">
@@ -2898,6 +2902,7 @@ function renderAll(d, lat, lon){
   renderCurrentWeather(cur);
   renderSeason(cur,month);
   fetchCHHistoris(lat, lon);
+  fetchCHSeptOkt(lat, lon);
   renderAlert(cur,month);
   renderDasarian(d.daily, d.hourly);
   renderOPT(cur);
@@ -3297,6 +3302,145 @@ function toggleCHDetail(btn){
   const isExpanding = btn.getAttribute('aria-expanded') !== 'true';
   if(isExpanding && typeof gtag !== 'undefined') gtag('event', 'ch_detail_buka');
   const detail = document.getElementById('ch-detail');
+  if(!detail) return;
+  const isOpen = btn.getAttribute('aria-expanded') === 'true';
+  detail.style.display = isOpen ? 'none' : 'block';
+  btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  btn.textContent = isOpen ? 'lihat detail \u2193' : 'sembunyikan \u2191';
+}
+
+// ── Sept–Okt: prediksi akhir kemarau untuk petani telat tanam ────────────────
+const HIST_SEPOKT = MONTHLY_HIST[9].rain + MONTHLY_HIST[10].rain; // 70+115 = 185 mm
+
+async function fetchCHSeptOkt(lat, lon){
+  const now   = new Date();
+  const month = now.getMonth()+1;
+  const year  = now.getFullYear();
+
+  try{
+    const bulanTarget = [9, 10];
+    const bulanLewat  = bulanTarget.filter(m => m <  month);
+    const bulanJalan  = bulanTarget.filter(m => m === month);
+    const bulanDepan  = bulanTarget.filter(m => m >  month);
+
+    let totalAktual   = 0;
+    let totalSeasonal = 0;
+    let usedFallback  = false;
+
+    const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+    const yStr = toYMD(yesterday);
+
+    // Archive: bulan lewat + berjalan
+    const archiveBulans = [...bulanLewat, ...bulanJalan];
+    if(archiveBulans.length > 0){
+      const archiveStart = `${year}-${String(Math.min(...archiveBulans)).padStart(2,'0')}-01`;
+      const lastAB       = Math.max(...archiveBulans);
+      const lastABEnd    = toYMD(new Date(year, lastAB, 0));
+      const archiveEnd   = lastABEnd < yStr ? lastABEnd : yStr;
+      const urlA = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${archiveStart}&end_date=${archiveEnd}&daily=precipitation_sum&timezone=Asia%2FJakarta`;
+      const resA = await fetch(urlA);
+      const dA   = await resA.json();
+      totalAktual = (dA.daily?.precipitation_sum || []).reduce((a,v)=>a+(v||0),0);
+    }
+
+    // SEAS5: bulan belum terjadi
+    if(bulanDepan.length > 0){
+      const seasonalStart = `${year}-${String(Math.min(...bulanDepan)).padStart(2,'0')}-01`;
+      const lastDB        = Math.max(...bulanDepan);
+      const seasonalEnd   = toYMD(new Date(year, lastDB, 0));
+      const urlS = `https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${lat}&longitude=${lon}&start_date=${seasonalStart}&end_date=${seasonalEnd}&daily=precipitation_sum&models=ecmwf_seas5_ensemble_mean&timezone=Asia%2FJakarta`;
+      try{
+        const resS = await fetch(urlS);
+        const dS   = await resS.json();
+        const vals = dS.daily?.precipitation_sum || [];
+        if(vals.length > 0){
+          totalSeasonal = vals.reduce((a,v)=>a+(v||0),0);
+        } else throw new Error('no data');
+      } catch(_){
+        bulanDepan.forEach(m => totalSeasonal += MONTHLY_HIST[m].rain);
+        usedFallback = true;
+      }
+    }
+
+    // Hitung total & persentase
+    let totalProyeksi;
+    if(month > 10){
+      // Sudah lewat musim — pakai aktual Sept+Okt saja
+      totalProyeksi = totalAktual;
+    } else if(month < 9){
+      // Belum masuk Sept — proyeksi murni SEAS5 (atau fallback)
+      totalProyeksi = totalSeasonal || HIST_SEPOKT;
+    } else {
+      // Sedang di Sept atau Okt
+      totalProyeksi = totalAktual + totalSeasonal;
+    }
+
+    const pct = Math.round((totalProyeksi / HIST_SEPOKT) * 100);
+
+    // Status
+    let statusClass, statusLabel, icon, instruksi;
+    if(pct > 120){
+      statusClass = 'lebih-basah'; statusLabel = 'Luwih Teles'; icon = '⚠️';
+      instruksi = 'Sept–Okt diprediksi luwih teles saka biasa. Kemarau enggal rampung. Petani sing telat nandur kudu waspada — udan bisa ganggu penjemuran lan nurunke kualitas godhong.';
+    } else if(pct < 80){
+      statusClass = 'lebih-kering'; statusLabel = 'Luwih Garing'; icon = '⭐';
+      instruksi = 'Sept–Okt diprediksi luwih garing saka biasa. Kemarau mundur. Petani sing telat nandur isih ana wektu kanggo panen sing apik — manfaatke iki kanthi optimal.';
+    } else {
+      statusClass = 'normal'; statusLabel = 'Normal'; icon = '✅';
+      instruksi = 'Sept–Okt diprediksi normal sesuai biasane. Kemarau rampung sesuai jadwal. Petani telat nandur perlu enggal-enggal panen sadurunge Oktober akir supaya hasil ora rusak udan.';
+    }
+
+    // Label sumber
+    const bn = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    let sumberNote;
+    if(month > 10){
+      sumberNote = `Data aktual Sept–Okt ${year}`;
+    } else if(month < 9){
+      sumberNote = usedFallback
+        ? `Estimasi historis Sept–Okt ${year} (prediksi belum tersedia)`
+        : `Proyeksi ECMWF SEAS5 Sept–Okt ${year}`;
+    } else {
+      const sudah = archiveBulans.map(m=>bn[m]).join('–');
+      const akan  = bulanDepan.map(m=>bn[m]).join('–');
+      if(sudah && akan){
+        sumberNote = usedFallback
+          ? `Aktual ${sudah} + estimasi historis ${akan}`
+          : `Aktual ${sudah} + prediksi ${akan} (ECMWF SEAS5)`;
+      } else {
+        sumberNote = `Aktual Sept–${bn[Math.max(...archiveBulans)]} ${year}`;
+      }
+    }
+
+    // Bar
+    const barMax  = 140;
+    const barW    = Math.round((Math.min(pct, barMax) / barMax) * 100);
+    const normLeft= Math.round((100 / barMax) * 100);
+
+    document.getElementById('ch-banner-sepokt').innerHTML=`
+      <div class="ch-banner ${statusClass}">
+        <div class="ch-banner-icon">${icon}</div>
+        <div class="ch-banner-body">
+          <div class="ch-banner-title">Sept–Okt ${year}: <strong>${statusLabel}</strong></div>
+          <div class="ch-banner-instruksi">${instruksi}</div>
+          <div class="ch-banner-bar-wrap">
+            <div class="ch-banner-bar-fill" style="width:${barW}%"></div>
+            <div class="ch-banner-bar-norm" style="left:${normLeft}%"></div>
+          </div>
+          <div class="ch-banner-detail" id="ch-detail-sepokt" style="display:none">
+            <div class="ch-banner-sub">~${Math.round(totalProyeksi)} mm &middot; historis ~${HIST_SEPOKT} mm (${pct}%) &middot; ${sumberNote}</div>
+            <div class="ch-banner-disclaimer">${usedFallback ? '\u2139\ufe0f Data prediksi belum tersedia \u2014 ditampilkan estimasi historis.' : '\u26a0\ufe0f Prediksi ECMWF SEAS5 \u2014 indikasi awal, dudu kepastian.'}</div>
+          </div>
+          <div class="ch-banner-toggle" onclick="toggleSepOktDetail(this)" aria-expanded="false">lihat detail \u2193</div>
+        </div>
+      </div>`;
+
+  } catch(e){
+    document.getElementById('ch-banner-sepokt').innerHTML='';
+  }
+}
+
+function toggleSepOktDetail(btn){
+  const detail = document.getElementById('ch-detail-sepokt');
   if(!detail) return;
   const isOpen = btn.getAttribute('aria-expanded') === 'true';
   detail.style.display = isOpen ? 'none' : 'block';
