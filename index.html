@@ -25,7 +25,6 @@
    Tema: Green Earthy · Plus Jakarta Sans
 ═══════════════════════════════════════════ */
 :root {
-  --green-900: #0a2e2b;
   --green-800: #0d3d39;
   --green-700: #005c57;
   --green-600: #007a75;
@@ -54,13 +53,10 @@
 
   --radius-sm:  8px;
   --radius-md:  14px;
-  --radius-lg:  20px;
   --radius-xl:  28px;
 
   --shadow-sm:  0 2px 10px rgba(70,50,15,.07), 0 1px 3px rgba(70,50,15,.05);
-  --shadow-md:  0 4px 20px rgba(70,50,15,.10), 0 1px 4px rgba(70,50,15,.06);
   --shadow-lg:  0 8px 32px rgba(70,50,15,.12), 0 2px 8px rgba(70,50,15,.06);
-  --shadow-green: 0 4px 20px rgba(0,122,117,.28);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1629,10 +1625,6 @@ textarea.catatan-input { resize: vertical; min-height: 72px; }
 .catatan-del:hover   { opacity: .88; }
 .catatan-edit:active, .catatan-del:active { transform: scale(.97); }
 .catatan-empty { padding: 24px; text-align: center; color: var(--gray-400); font-size: 13px; }
-.profil-modal { max-width: 340px; }
-.profil-modal-title { font-size: 17px; font-weight: 800; color: var(--gray-800); margin-bottom: 16px; }
-.profil-modal-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-body.dark-mode .profil-modal-title { color: #e0e0e0; }
 
 /* ── BOTTOM NAV ─────────────────────────── */
 .bottom-nav {
@@ -1715,22 +1707,6 @@ body.dark-mode .profil-modal-title { color: #e0e0e0; }
 }
 .modal-body { overflow-y: auto; padding: 8px 16px 20px; flex: 1; }
 
-.hourly-row {
-  display: grid;
-  grid-template-columns: 44px 32px 1fr 44px 44px;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 4px;
-  border-bottom: 1px solid var(--gray-50);
-}
-.hourly-row.now { background: var(--green-50); border-radius: var(--radius-sm); margin: 2px 0; }
-.hourly-time { font-size: 12px; font-weight: 600; color: var(--gray-500); }
-.hourly-row.now .hourly-time { color: var(--green-600); }
-.hourly-icon { font-size: 22px; text-align: center; }
-.hourly-bar-wrap { height: 4px; background: var(--gray-100); border-radius: 2px; overflow: hidden; margin-top: 3px; }
-.hourly-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green-600), #4a8fbf); border-radius: 2px; }
-.hourly-precip { font-size: 11px; color: var(--gray-400); text-align: right; }
-.hourly-temp { font-size: 13px; font-weight: 700; color: var(--gray-700); text-align: right; }
 
 /* ── EDIT MODAL ─────────────────────────── */
 .edit-modal-bg {
@@ -2740,10 +2716,6 @@ function toggleDarkMode(){
 // ── Refresh ───────────────────────────────────────────────────────────────
 
 // ── Close Hourly Modal ────────────────────────────────────────────────────
-function openHourlyModal(){
-  document.getElementById('hourly-modal').classList.add('open');
-  if(typeof gtag !== 'undefined') gtag('event', 'cuaca_jam_buka');
-}
 function closeHourlyModal(e){
   if(!e || e.target===document.getElementById('hourly-modal')){
     document.getElementById('hourly-modal').classList.remove('open');
@@ -3476,44 +3448,43 @@ function renderKegiatanDinaIki(cur, hourly) {
 
   const bulan = new Date().getMonth() + 1; // 1–12
 
-  // Kalender kegiatan per bulan
+  // Kalender kegiatan per bulan (kunci tunggal = representasi grup)
+  // 'Mbajak'   → mewakili kartu Mbajak+Mbedeng
+  // 'Ngrabuk'  → mewakili kartu Ngrabuk+Ndangir (+ fungsi Matun di deskripsi)
+  // 'Punggel'  → mewakili kartu Punggel+Wiwil
+  // 'Ngrumat'  → mewakili kartu Ngrumat+Nyemprot
+  // 'Panen'    → mewakili kartu Panen+Nglayu
+  // 'Ngrajang' → mewakili kartu Ngrajang+Mepe
   const KALENDER = {
-    4:  ['Mbajak', 'Mbedeng', 'Nggawe Got', 'Ndeder'],
-    5:  ['Mbajak', 'Mbedeng', 'Nggawe Got', 'Ndeder', 'Nandur', 'Nyulam'],
-    6:  ['Nggawe Got', 'Nandur', 'Nyulam', 'Ngrabuk', 'Ndangir'],
-    7:  ['Ngrumat', 'Punggel', 'Wiwil', 'Nyemprot', 'Matun'],
-    8:  ['Punggel', 'Wiwil', 'Panen', 'Nglayu', 'Ngrajang', 'Mepe', 'Adol'],
-    9:  ['Panen', 'Nglayu', 'Ngrajang', 'Mepe', 'Adol'],
+    4:  ['Mbajak', 'Nggawe Got', 'Ndeder'],
+    5:  ['Mbajak', 'Nggawe Got', 'Ndeder', 'Nandur'],
+    6:  ['Nggawe Got', 'Nandur', 'Ngrabuk'],
+    7:  ['Ngrumat', 'Punggel', 'Nyemprot'],
+    8:  ['Punggel', 'Panen', 'Ngrajang', 'Adol'],
+    9:  ['Panen', 'Ngrajang', 'Adol'],
     10: ['Adol'],
   };
 
-  // Data per kegiatan: ikon, latar, deskripsi, tag
+  // Definisi kartu — termasuk kartu gabungan
+  // Kunci = nama representasi yg dipakai di KALENDER
   const INFO_KEGIATAN = {
-    'Mbajak':     { ikon:'🚜', bg:'bg-green',  desc:'Olah lahan supaya gembur, siap dibedeng.',          tag:'tag-ayo'     },
-    'Mbedeng':    { ikon:'⛏️',  bg:'bg-green',  desc:'Buat bedengan rapi, atur jarak sesuai anjuran.',    tag:'tag-ayo'     },
-    'Nggawe Got': { ikon:'💧',  bg:'bg-blue',   desc:'Saluran got dirapikne supaya ora banjir.',          tag:'tag-ayo'     },
-    'Ndeder':     { ikon:'🌱',  bg:'bg-green',  desc:'Semai benih ning persemaian, jaga kelembaban.',     tag:'tag-ayo'     },
-    'Nandur':     { ikon:'🌿',  bg:'bg-green',  desc:'Tanam bibit sing wis siap, jarak pas.',             tag:'tag-ayo'     },
-    'Nyulam':     { ikon:'🔄',  bg:'bg-amber',  desc:'Ganti tanaman sing mati utawa kerdil.',             tag:'tag-ayo'     },
-    'Ngrabuk':    { ikon:'🧪',  bg:'bg-amber',  desc:'Pemupukan: Rabuk 1 umur 1 minggu, Rabuk 2 umur 4 minggu.', tag:'tag-ayo' },
-    'Ndangir':    { ikon:'🪛',  bg:'bg-green',  desc:'Sekalian pas ngrabuk, tanah digemburne.',           tag:'tag-ayo'     },
-    'Matun':      { ikon:'🌾',  bg:'bg-green',  desc:'Cabut rumput nalika sukete wis padha dhuwur.',      tag:'tag-rutin'   },
-    'Ngrumat':    { ikon:'🔍',  bg:'bg-green2',   desc:'PHT: pencegahan luwih apik tinimbang pengobatan. Cek tanaman saben dina.', tag:'tag-rutin' },
-    'Nyemprot':   { ikon:'💊',  bg:'bg-amber',  desc:'Yen meh ngobat, kudu sesuai dosis. Aja kakehan.',  tag:'tag-hati'    },
-    'Punggel':    { ikon:'✂️',  bg:'bg-amber',  desc:'Buang pucuk supaya nutrisi fokus ning godhong.',   tag:'tag-ayo'     },
-    'Wiwil':      { ikon:'🌿',  bg:'bg-green',  desc:'Buang tunas ketiak supaya godhong ora rebutan.',   tag:'tag-ayo'     },
-    'Panen':      { ikon:'🍃',  bg:'bg-green',  desc:'Panen godhong sing wis mateng, mulai saka ngisor.',tag:'tag-ayo'     },
-    'Nglayu':     { ikon:'🏚️', bg:'bg-amber',  desc:'Layukan godhong sakdurunge dirajang.',              tag:'tag-ayo'     },
-    'Ngrajang':   { ikon:'🔪',  bg:'bg-amber',  desc:'Rajang godhong sing wis layu tipis-tipis.',         tag:'tag-ayo'     },
-    'Mepe':       { ikon:'☀️',  bg:'bg-amber',  desc:'Jemur rajangan ning pepe supaya garing merata.',   tag:'tag-ayo'     },
-    'Adol':       { ikon:'💰',  bg:'bg-green',  desc:'Jual tembakau sing wis garing, cek harga pasar.',  tag:'tag-ayo'     },
+    'Mbajak':     { ikon:'🚜', bg:'bg-green',  judul:'Mbajak & Mbedeng',       desc:'Olah lemah nganti gembur, banjur buat bedengan rapi kanthi jarak sing pas.',           tag:'tag-ayo'   },
+    'Nggawe Got': { ikon:'💧', bg:'bg-blue',   judul:'Nggawe Got',             desc:'Saluran got dirapikne supaya banyu ora menggenang ning lahan.',                         tag:'tag-ayo'   },
+    'Ndeder':     { ikon:'🌱', bg:'bg-green',  judul:'Ndeder',                 desc:'Semai benih ning persemaian, jaga kelembaban supaya tuwuh rata.',                       tag:'tag-ayo'   },
+    'Nandur':     { ikon:'🌿', bg:'bg-green',  judul:'Nandur & Nyulam',        desc:'Tandur bibit sing wis siap, banjur sulam sing mati utawa kerdil enggal-enggal.',        tag:'tag-ayo'   },
+    'Ngrabuk':    { ikon:'🧪', bg:'bg-amber',  judul:'Ngrabuk & Ndangir',      desc:'Wektune rabuk, nggembur lemah, sekalian cabut sukete.',                                 tag:'tag-ayo'   },
+    'Punggel':    { ikon:'✂️', bg:'bg-amber',  judul:'Punggel & Wiwil',        desc:'Buang pucuk lan tunas ketiak supaya nutrisi fokus ning godhong utama.',                 tag:'tag-ayo'   },
+    'Ngrumat':    { ikon:'🔍', bg:'bg-green2', judul:'Ngrumat & Nyemprot',     desc:'Cek tanaman saben dina (PHT). Yen meh ngobat, sesuai dosis — aja kakehan.',            tag:'tag-rutin' },
+    'Nyemprot':   { ikon:'🔍', bg:'bg-green2', judul:'Ngrumat & Nyemprot',     desc:'Cek tanaman saben dina (PHT). Yen meh ngobat, sesuai dosis — aja kakehan.',            tag:'tag-rutin' },
+    'Panen':      { ikon:'🍃', bg:'bg-green',  judul:'Panen & Nglayu',         desc:'Panen godhong sing wis mateng saka ngisor, banjur layukne sadurunge dirajang.',        tag:'tag-ayo'   },
+    'Ngrajang':   { ikon:'🔪', bg:'bg-amber',  judul:'Ngrajang & Mepe',        desc:'Rajang godhong layu tipis-tipis, banjur jemur ning pepe nganti garing merata.',        tag:'tag-ayo'   },
+    'Adol':       { ikon:'💰', bg:'bg-green',  judul:'Adol',                   desc:'Jual tembakau sing wis garing, cek harga pasar sadurunge transaksi.',                  tag:'tag-ayo'   },
   };
 
   // Ambil data cuaca
-  const angin      = cur ? Math.round(cur.wind_speed_10m) : 0;
-  const humid      = cur ? Math.round(cur.relative_humidity_2m) : 0;
-  const wmo        = cur ? cur.weather_code : 0;
-  const isHujan    = wmo >= 51; // drizzle ke atas
+  const angin        = cur ? Math.round(cur.wind_speed_10m) : 0;
+  const wmo          = cur ? cur.weather_code : 0;
+  const isHujan      = wmo >= 51;
   const anginKencang = angin >= 20;
 
   // Hitung peluang hujan sore dari hourly
@@ -3530,38 +3501,39 @@ function renderKegiatanDinaIki(cur, hourly) {
   }
 
   const kegiatanBulan = KALENDER[bulan] || [];
-  const items = [];
+  const bulanAktif    = kegiatanBulan.length > 0;
+  const items         = [];
 
-  // ── Peringatan cuaca — hanya bulan aktif (Apr–Okt) ──
-  const bulanAktif = kegiatanBulan.length > 0;
+  // ── 1. Peringatan cuaca — selalu di atas, tidak tergantung kegiatan ──
+  const adaNyemprot = kegiatanBulan.includes('Ngrumat') || kegiatanBulan.includes('Nyemprot');
+  const adaMepe     = kegiatanBulan.includes('Ngrajang');
+
   if (bulanAktif && isHujan) {
-    const descHujan = kegiatanBulan.includes('Nyemprot')
-      ? 'Tunda kegiatan ning njaba. Nyemprot ora bakal mujarab nalika udan.'
-      : 'Tunda kegiatan ning njaba. Sabar ngenteni udan reda.';
     items.push({
       ikon: '🌧', bg: 'bg-red',
       judul: 'Saiki lagi udan',
-      desc: descHujan,
+      desc: adaNyemprot
+        ? 'Tunda kegiatan ning njaba. Nyemprot ora bakal mujarab nalika udan.'
+        : 'Tunda kegiatan ning njaba. Sabar ngenteni udan reda.',
       tag: 'tag-waspada'
     });
   } else if (bulanAktif && anginKencang) {
-    const descAngin = kegiatanBulan.includes('Nyemprot')
-      ? `Angin ${angin} km/jam. Semprotan bakal mawur, ora kena sasaran. Tunggu angin reda.`
-      : `Angin ${angin} km/jam. Ati-ati nindakake kegiatan ning njaba.`;
     items.push({
       ikon: '💨', bg: 'bg-red',
       judul: 'Angin kenceng',
-      desc: descAngin,
+      desc: adaNyemprot
+        ? `Angin ${angin} km/jam. Semprotan bakal mawur, ora kena sasaran. Tunggu angin reda.`
+        : `Angin ${angin} km/jam. Ati-ati nindakake kegiatan ning njaba.`,
       tag: 'tag-waspada'
     });
-  } else if (bulanAktif && probSore >= 60 && kegiatanBulan.includes('Nyemprot')) {
+  } else if (bulanAktif && probSore >= 60 && adaNyemprot) {
     items.push({
       ikon: '⚠️', bg: 'bg-red',
       judul: 'Nyemprot: luwih apik esuk',
       desc: `Sore diprediksi hujan ${probSore}%. Yen nyemprot, luwih apik esuk dina iki.`,
       tag: 'tag-hati'
     });
-  } else if (probSore >= 60 && kegiatanBulan.includes('Mepe')) {
+  } else if (bulanAktif && probSore >= 60 && adaMepe) {
     items.push({
       ikon: '⚠️', bg: 'bg-red',
       judul: 'Ati-ati mepe — sore bisa udan',
@@ -3570,42 +3542,34 @@ function renderKegiatanDinaIki(cur, hourly) {
     });
   }
 
-  // ── Kegiatan utama bulan ini (maks 2 setelah peringatan) ──
-  const prioritas = kegiatanBulan.filter(k => {
-    // skip nyemprot jika sudah ada peringatan angin/hujan di atas
-    if ((k === 'Nyemprot') && (isHujan || anginKencang)) return false;
-    return true;
-  });
-
-  // Ambil maks 2 kegiatan teratas
-  const sisa = Math.max(0, 3 - items.length);
-  prioritas.slice(0, sisa).forEach(nama => {
-    const info = INFO_KEGIATAN[nama];
-    if (!info) return;
-    items.push({ ikon: info.ikon, bg: info.bg, judul: nama, desc: info.desc, tag: info.tag });
-  });
-
-  // ── Selalu tambah Ngrumat PHT jika bulan aktif dan belum ada ──
-  const sudahNgrumat = items.some(x => x.judul === 'Ngrumat');
-  if (!sudahNgrumat && bulan >= 5 && bulan <= 9 && items.length < 3) {
-    const info = INFO_KEGIATAN['Ngrumat'];
-    items.push({ ikon: info.ikon, bg: info.bg, judul: 'Ngrumat', desc: info.desc, tag: info.tag });
-  }
-
-  // ── Sinyal OPT — tampil jika ada hama/penyakit aktif ──
+  // ── 2. Sinyal OPT — selalu di atas setelah cuaca ──
   const optAktif = getOPTAktif(cur);
   if (optAktif.length > 0) {
     const namaList = optAktif.map(o => o.nama.replace(/^[\S]+\s/, '')).join(', ');
     items.push({
-      ikon: '🐛',
-      bg: 'bg-red',
+      ikon: '🐛', bg: 'bg-red',
       judul: `Waspada OPT: ${optAktif.length} ancaman aktif`,
       desc: `${namaList} — kondisi cuaca dina iki mendukung perkembangan hama kasebut. Pantau tanaman saksama.`,
       tag: 'tag-waspada',
-      isOPT: false
+      isOPT: true
     });
   }
 
+  // ── 3. Kegiatan budidaya bulan ini — tampil semua, tanpa batas ──
+  // Deduplikasi: Ngrumat & Nyemprot pakai kunci yang sama, cukup satu kartu
+  const sudahTampil = new Set();
+  kegiatanBulan.forEach(kunci => {
+    const info = INFO_KEGIATAN[kunci];
+    if (!info) return;
+    // Nyemprot sudah direpresentasikan oleh Ngrumat (judul sama)
+    if (sudahTampil.has(info.judul)) return;
+    // Skip Nyemprot/Ngrumat jika cuaca tidak mendukung penyemprotan
+    // (peringatan sudah muncul di atas; kartu tetap tampil agar petani tahu jadwal)
+    sudahTampil.add(info.judul);
+    items.push({ ikon: info.ikon, bg: info.bg, judul: info.judul, desc: info.desc, tag: info.tag });
+  });
+
+  // ── Offseason ──
   if (items.length === 0) {
     const PESAN_OFFSEASON = {
       1:  { ikon: '\u{1F327}', judul: 'Januari \u2014 Lagi Musim Udan',     desc: 'Saiki lagi mangsa udan. Kegiatan budidaya tembakau durung bisa diwiwiti. Ngaso sik, ngenteni mangsa garing teka.' },
@@ -4273,23 +4237,6 @@ function hapusUAT(id){
 }
 
 // ── Modal helper ──────────────────────────────────────────────────────────
-function tampilModal(html){
-  let bg = document.getElementById('edit-modal-bg');
-  if(!bg){
-    bg = document.createElement('div');
-    bg.id = 'edit-modal-bg';
-    bg.className = 'edit-modal-bg';
-    bg.onclick = function(e){ if(e.target===bg) tutupModal(); };
-    document.body.appendChild(bg);
-  }
-  bg.innerHTML = `<div class="edit-modal">${html}</div>`;
-  bg.style.display = 'flex';
-}
-function tutupModal(){
-  const bg = document.getElementById('edit-modal-bg');
-  if(bg) bg.style.display = 'none';
-}
-
 // ── Render riwayat per tahun ──────────────────────────────────────────────
 function renderCatatan(){
   const list = document.getElementById('catatan-list');
@@ -5033,7 +4980,7 @@ document.addEventListener('keydown', function(e) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SACAKA SW terdaftar:', reg.scope))
+      .then(reg => reg)
       .catch(err => console.warn('SACAKA SW gagal:', err));
   });
 }
